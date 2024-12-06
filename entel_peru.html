@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proyecto Konecta</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      background-color: #f0f2f5;
+      color: #333;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .container {
+      max-width: 1200px;
+    }
+    .card, .table {
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      height: 100%;
+    }
+    .card-header, .table thead {
+      background-color: #007bbd;
+      color: #fff;
+      font-weight: bold;
+    }
+    .btn-primary {
+      background-color: #f89c3a;
+      border-color: #f89c3a;
+    }
+    .btn-primary:hover {
+      background-color: #e68a30;
+    }
+    h1, h4 {
+      color: #007bbd;
+    }
+    canvas {
+      max-width: 100%;
+      height: auto;
+    }
+    .chart-container {
+      height: 300px;
+    }
+    .row.g-4 > div {
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+    }
+    .row.g-4 > div > .card {
+      width: 100%;
+    }
+    .frequency-section {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .frequency-section .icon {
+      font-size: 2rem;
+      color: #f89c3a;
+    }
+    .frequency-section h5 {
+      margin: 0;
+      color: #333;
+    }
+    .frequency-section small {
+      color: #888;
+    }
+    .legend-section {
+      padding-left: 15px;
+    }
+    .legend-section small {
+      font-size: 14px;
+      color: #888;
+    }
+    .profile-section {
+      display: flex;
+      align-items: center;
+      background-color: #ffffff;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    }
+    .profile-img {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #007bff;
+    }
+    .profile-info {
+      margin-left: 15px;
+    }
+    .profile-info h4 {
+      margin: 0;
+      font-size: 16px;
+    }
+    .profile-info p {
+      margin: 0;
+      color: #6c757d;
+    }
+    .logout-section {
+      margin-left: auto;
+    }
+    .logout-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px;
+    }
+    .logout-icon {
+      width: 24px;
+      height: 24px;
+      transition: transform 0.3s;
+    }
+    .logout-btn:hover .logout-icon {
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-5">
+    <div class="row d-flex justify-content-between align-items-center mb-5">
+      <!-- Logo de la empresa -->
+      <div class="col-auto">
+        <img src="imagen/konecta.jpg" alt="Logo" class="logo">
+      </div>
+      <!-- Sección del perfil -->
+      <div class="col-auto">
+        <div class="profile-section">
+          <img src="https://via.placeholder.com/70" alt="Foto de Perfil" class="profile-img">
+          <div class="profile-info">
+            <h4>Juan Pérez</h4>
+            <p>Usuario Conectado</p>
+          </div>
+          <!-- Botón de cerrar sesión -->
+          <div class="logout-section">
+            <button class="logout-btn" onclick="logout()">
+              <img src="https://cdn-icons-png.flaticon.com/512/1828/1828479.png" 
+              alt="Cerrar Sesión" class="logout-icon">
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Section: Configuración de VLAN y Gráfico -->
+    <div class="row g-4">
+      <!-- VLAN Configuration Form -->
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header text-center">
+            Configuración de VLAN
+          </div>
+          <div class="card-body">
+            <form id="vlanform_eperu">
+              <div class="mb-3">
+                <label for="vlan_eperu" class="form-label">ID de la VLAN</label>
+                <input type="text" class="form-control" id="vlan_eperu" placeholder="Ingrese el ID">
+              </div>
+              <div class="mb-3 position-relative">
+                <label for="int_eperu" class="form-label">Interfaz</label>
+                <input type="text" class="form-control" id="int_eperu" placeholder="Seleccione o escriba la interfaz" autocomplete="off">
+
+                <!-- Dropdown de interfaces disponibles -->
+                <ul id="interfaceList" class="list-group position-absolute w-100" style="z-index: 10; display: none;">
+                  <!-- Las interfaces se llenarán aquí mediante JavaScript -->
+                </ul>
+              </div>
+              
+              <!-- Botón enviado con espaciado -->
+              <div class="btn-container">
+                <button type="submit" class="btn btn-primary w-100">Enviar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- VLAN Chart, Frequency, and Legend -->
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header text-center">
+            Uso de VLAN's
+          </div>
+          <div class="card-body d-flex">
+            <!-- Gráfico -->
+            <div class="chart-container" style="width: 80%; height: 300px;">
+              <canvas id="vlanChart"></canvas>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Middle Section: Detalles del Equipo -->
+    <div class="row g-4 mt-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header text-center">
+            Detalles del Equipo
+          </div>
+          <div class="card-body">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Fabricante</th>
+                  <th>Modelo</th>
+                  <th>Número de Serie</th>
+                  <th>Ubicación</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Cisco</td>
+                  <td>Catalyst 9300</td>
+                  <td>FCW2134L012</td>
+                  <td>Data Center</td>
+                </tr>
+                <tr>
+                  <td>Cisco</td>
+                  <td>ISR 4451</td>
+                  <td>FTX2136Q1HK</td>
+                  <td>Sucursal 1</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Section: Direcciones MAC -->
+    <div class="row g-4 mt-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header text-center">
+            Direcciones MAC
+          </div>
+          <div class="card-body">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>VLAN</th>
+                  <th>Dirección MAC</th>
+                  <th>Interfaz</th>
+                </tr>
+              </thead>
+              <tbody id="datosMacTable">
+                <!-- Aquí se insertarán las filas dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script  src="entel_peru.js"></script>
+  <!-- Script for Chart -->
+  <script>
+    const ctx = document.getElementById('vlanChart').getContext('2d');
+    const vlanChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['VLAN 60', 'VLAN 80', 'VLAN 100', 'VLAN 200'],
+        datasets: [{
+          label: 'Uso de VLANs',
+          data: [30, 50, 70, 90],
+          backgroundColor: ['#FFA500', '#ADD8E6', 'AAAAAA', '#007BBd'], /* Colores suaves */
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'right',
+          },
+        }
+      }
+    });
+  </script>
+  <script>
+    // Lista de interfaces disponibles
+    const interfaces = [
+      "GigabitEthernet0/0",
+      "GigabitEthernet0/1",
+      "GigabitEthernet0/2",
+      "FastEthernet0/0",
+      "FastEthernet0/1",
+      "Ethernet1/0"
+    ];
+
+    // Función para filtrar y mostrar las interfaces basadas en el texto ingresado
+    document.getElementById('interface').addEventListener('input', function () {
+      const input = document.getElementById('interface');
+      const query = input.value.toLowerCase();
+      const list = document.getElementById('interfaceList');
+
+      // Filtrar interfaces que coincidan con la entrada del usuario
+      const filteredInterfaces = interfaces.filter(interface => interface.toLowerCase().includes(query));
+      
+      // Mostrar u ocultar el dropdown basado en el filtro
+      if (filteredInterfaces.length > 0 && query !== '') {
+        list.style.display = 'block';
+      } else {
+        list.style.display = 'none';
+      }
+
+      // Rellenar el dropdown con las interfaces filtradas
+      list.innerHTML = ''; // Limpiar la lista actual
+      filteredInterfaces.forEach(interface => {
+        const li = document.createElement('li');
+        li.textContent = interface;
+        li.classList.add('list-group-item', 'list-group-item-action');
+        li.style.cursor = 'pointer';
+
+        // Al hacer clic en un item, llenar el input con la interfaz seleccionada
+        li.onclick = () => {
+          input.value = interface; // Asignar el valor seleccionado al input
+          list.style.display = 'none'; // Ocultar la lista de opciones al hacer clic
+        };
+
+        list.appendChild(li);
+      });
+    });
+
+    // Cerrar el dropdown si se hace clic fuera
+    document.addEventListener('click', function (event) {
+      const isClickInside = document.getElementById('interface').contains(event.target) || document.getElementById('interfaceList').contains(event.target);
+      if (!isClickInside) {
+        document.getElementById('interfaceList').style.display = 'none'; // Ocultar el menú si se hace clic fuera
+      }
+    });
+  </script>
+  
+  <style>
+    .list-group-item.active {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .position-relative {
+      position: relative;
+    }
+
+    .list-group {
+      max-height: 200px;
+      overflow-y: auto;
+      border-radius: 0.375rem;
+    }
+
+    .list-group-item {
+      cursor: pointer;
+    }
+
+    .list-group-item:hover {
+      background-color: #f1f1f1;
+    }
+  </style>
+  
+</body>
+</html>

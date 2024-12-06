@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard de VLANs - Proyecto de Tesis</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Estilos personalizados -->
+  <style>
+    body {
+      background: linear-gradient(to bottom right, #eef6fc, #ffe8d6);
+      color: #6faaaa;
+      font-family: 'Poppins', sans-serif;
+    }
+    .table {
+      background-color: #ffffff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .card {
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      color: #ffffff;
+    }
+    .card.bg-blue {
+      background-color: #4a90e2;
+    }
+    .card.bg-orange {
+      background-color: #f5a623;
+    }
+    .card.bg-black {
+      background-color: #000000;
+    }
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    .table-primary {
+      background-color: #4a90e2 !important;
+      color: #ffffff;
+    }
+    .chart-container {
+      background-color: #ffffff;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .text-highlight {
+      color: #4a90e2;
+      font-weight: bold;
+    }
+    h1, h4 {
+      font-weight: 600;
+    }
+    p, td, th {
+      font-weight: 300;
+    }
+    /* Ajuste de tamaño para el gráfico circular */
+    .chart-container canvas {
+      width: 100% !important; /* Se ajusta al 100% del contenedor */
+      max-width: 400px; /* Máximo tamaño que puede tener */
+      height: auto !important; /* Mantiene la proporción */
+    }
+    .profile-section {
+      display: flex;
+      align-items: center;
+      background-color: #ffffff;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    }
+    .profile-img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #007bff;
+    }
+    .profile-info {
+      margin-left: 10px;
+    }
+    .profile-info h4 {
+      margin: 0;
+      font-size: 16px;
+    }
+    .profile-info p {
+      margin: 0;
+      color: #6c757d;
+    }
+    .logout-section {
+      margin-left: auto;
+    }
+    .logout-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px;
+    }
+    .logout-icon {
+      width: 24px;
+      height: 24px;
+      transition: transform 0.3s;
+    }
+    .logout-btn:hover .logout-icon {
+      transform: scale(1.1);
+    }
+    
+  </style>
+</head>
+<body>
+  <div class="container py-5">
+    <div class="row d-flex justify-content-between align-items-center mb-5">
+      <!-- Logo de la empresa -->
+      <div class="col-auto">
+        <img src="imagen/konecta.jpg" alt="Logo" class="logo">
+      </div>
+      <!-- Sección del perfil -->
+      <div class="col-auto">
+        <div class="profile-section">
+          <img src="https://via.placeholder.com/70" alt="Foto de Perfil" class="profile-img">
+          <div class="profile-info">
+            <h4>Juan Pérez</h4>
+            <p>Usuario Conectado</p>
+          </div>
+          <!-- Botón de cerrar sesión -->
+          <div class="logout-section">
+            <button class="logout-btn" onclick="signOut()">
+              <img src="https://cdn-icons-png.flaticon.com/512/1828/1828479.png" 
+              alt="Cerrar Sesión" class="logout-icon">
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Sección de métricas principales -->
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <div class="card bg-blue">
+          <div class="card-body">
+            <h5 class="card-title">Dispositivos Totales</h5>
+            <p class="card-text fs-3">10</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card bg-orange">
+          <div class="card-body">
+            <h5 class="card-title">VLANs Configuradas</h5>
+            <p class="card-text fs-3">5</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card bg-black">
+          <div class="card-body">
+            <h5 class="card-title">Puertos Activos</h5>
+            <p class="card-text fs-3">8</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <div class="chart-container">
+          <h4 class="text-center">Distribución de VLANs</h4>
+          <canvas id="vlanChart"></canvas>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="chart-container">
+          <h4 class="text-center">Tráfico por Interfaz</h4>
+          <canvas id="trafficChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de dispositivos -->
+    <div class="row">
+      <div class="col-12">
+        <h4 class="text-center mb-3 text-highlight">Tabla de Direcciones MAC</h4>
+        <table class="table table-hover table-bordered">
+          <thead class="table-primary">
+            <tr>
+              <th>ID</th>
+              <th>VLAN</th>
+              <th>Dirección MAC</th>
+              <th>Interfaz</th>
+              <th>Dirección IP</th>
+            </tr>
+          </thead>
+          <tbody id="datosMac">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <div id="responseMessage"></div>
+
+  <script type="module">
+    import { msalInstance, signOut } from './azure_tesis.js';
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        try {
+            const loginResponse = await msalInstance.loginPopup({
+                scopes: ['user.read']
+            });
+
+            const account = loginResponse.account;
+            document.getElementById('user-name').innerText = account.username;
+            alert(`Login successful: ${account.username}`);
+
+            window.location.href = 'datos_mac.html'; // Redirigir a la página deseada
+        } catch (error) {
+            console.error('Login failed:', error);
+            alert('Error logging in.');
+        }
+    });
+
+    // Añade la función de cerrar sesión
+   
+    
+  </script>
+  <script>
+      // Función para obtener los datos MAC desde el servidor y mostrarlos en la tabla
+      function obtenerDatosMac() {
+          fetch('https://192.168.1.39:3000/datos-mac_konecta')
+              .then(response => {
+                  if (!response.ok) {
+                      throw new Error('Error al obtener los datos MAC');
+                  }
+                  return response.json();
+              })
+              .then(datos => {
+                  const tbody = document.getElementById('datosMac');
+                  tbody.innerHTML = '';
+                  datos.forEach(dato => {
+                      const row = document.createElement('tr');
+                      row.innerHTML = `
+                          <td>${dato.id}</td>
+                          <td>${dato.vlan}</td>
+                          <td>${dato.mac_address}</td>
+                          <td>${dato.port}</td>
+                          <td>
+                              <button onclick="redirigir('${dato.ip_address}')">
+                                  ${dato.ip_address}
+                              </button>
+                          </td>
+                      `;
+                      tbody.appendChild(row);
+                  });
+              })
+              .catch(error => {
+                  console.error('Error:', error);
+              });
+      }
+
+      // Función para redirigir según la dirección IP
+      function redirigir(ip) {
+          if (ip === '192.168.40.5') {
+              window.location.href = 'index.html'; // Redirige a la página específica
+          } else {
+              window.location.href = 'entel_peru.html'; // Redirige a la dirección IP
+          }
+      }
+
+      obtenerDatosMac();
+  </script>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Chart.js Scripts -->
+  <script>
+        // Gráfico de Pie: Distribución de VLANs
+        const vlanCtx = document.getElementById('vlanChart').getContext('2d');
+    new Chart(vlanCtx, {
+      type: 'pie',
+      data: {
+        labels: ['VLAN 1', 'VLAN 10', 'VLAN 20', 'VLAN 30', 'VLAN 40'],
+        datasets: [{
+          data: [2, 3, 2, 1, 2],
+          backgroundColor: ['#4a90e2', '#f5a623', '#6faaaa', '#eef6fc', '#ffe8d6']
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom' }
+        }
+      }
+    });
+
+    // Gráfico de Barras: Tráfico por Interfaz
+    const trafficCtx = document.getElementById('trafficChart').getContext('2d');
+    new Chart(trafficCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Et0/1', 'Et0/2', 'Et0/3', 'Et0/4'],
+        datasets: [{
+          label: 'Tráfico (Mbps)',
+          data: [15, 10, 20, 5],
+          backgroundColor: ['#4a90e2', '#f5a623', '#6faaaa', '#eef6fc']
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  </script>
+  <script type="module" src="azure_tesis.js"></script>
+  <script src="https://alcdn.msauth.net/browser/2.37.0/js/msal-browser.min.js"></script>
+
+</body>
+</html>
